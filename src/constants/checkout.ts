@@ -48,10 +48,11 @@ export const simulateNetworkFailure = false
 
 export const paymentDelayMs = 1000
 
+export const checkoutLoadTimeoutMs = 8000
+
 export const testCards = {
   success: '4242424242424242',
   declined: '4000000000000002',
   failsOnceThenSucceeds: '4000000000000341',
+  networkFailure: '4000000000000119',
 } as const
-
-export type TestCardNumber = (typeof testCards)[keyof typeof testCards]

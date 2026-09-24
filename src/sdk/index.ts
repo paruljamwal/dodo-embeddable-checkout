@@ -1,4 +1,5 @@
 import {
+  checkoutLoadTimeoutMs,
   checkoutMessageSource,
   checkoutMessageTypes,
   closeReasons,
@@ -20,12 +21,22 @@ type PageScrollLock = {
   scrollY: number
 }
 
+const loadFailure: CheckoutFailure = {
+  code: errorCodes.checkoutLoadFailed,
+  message: "Checkout couldn't be loaded.",
+}
+
 type CheckoutSession = {
   options: OpenCheckoutOptions
   backdrop: HTMLDivElement
   iframe: HTMLIFrameElement
+  fallback: HTMLDivElement
   scrollLock: PageScrollLock
   onKeyDown: (event: KeyboardEvent) => void
+  onFrameError: () => void
+  loadTimer: number
+  loadFailed: boolean
+  returnFocus: HTMLElement | null
   settled: boolean
 }
 
@@ -109,11 +120,52 @@ function closeCheckout(): void {
   if (!current) return
 
   session = null
+  window.clearTimeout(current.loadTimer)
   document.removeEventListener('keydown', current.onKeyDown)
   window.removeEventListener('message', onCheckoutMessage)
+  current.iframe.removeEventListener('error', current.onFrameError)
   restorePageScroll(current.scrollLock)
   current.iframe.remove()
   current.backdrop.remove()
+
+  if (current.returnFocus && document.contains(current.returnFocus)) {
+    current.returnFocus.focus()
+  }
+}
+
+function showLoadError(current: CheckoutSession): void {
+  if (session !== current || current.settled) return
+
+  window.clearTimeout(current.loadTimer)
+  current.loadFailed = true
+  current.iframe.hidden = true
+  current.fallback.hidden = false
+  const retry = current.fallback.querySelector('.dodo-sdk-retry')
+  if (retry instanceof HTMLButtonElement) retry.focus()
+}
+
+function retryCheckoutLoad(current: CheckoutSession): void {
+  if (session !== current || current.settled) return
+
+  current.loadFailed = false
+  current.fallback.hidden = true
+  current.iframe.hidden = false
+  current.iframe.src = 'about:blank'
+  window.setTimeout(() => {
+    if (session !== current || current.settled) return
+    current.iframe.src = getCheckoutFrameUrl()
+  }, 0)
+  window.clearTimeout(current.loadTimer)
+  current.loadTimer = window.setTimeout(() => {
+    showLoadError(current)
+  }, checkoutLoadTimeoutMs)
+  current.iframe.focus()
+}
+
+function reportLoadFailure(): void {
+  settle((options) => {
+    options.onError(loadFailure)
+  })
 }
 
 function postProduct(current: CheckoutSession): void {
@@ -147,6 +199,10 @@ function onCheckoutMessage(event: MessageEvent): void {
   if (!isCheckoutToSdkMessage(event.data)) return
 
   if (event.data.type === checkoutMessageTypes.ready) {
+    window.clearTimeout(current.loadTimer)
+    current.loadFailed = false
+    current.iframe.hidden = false
+    current.fallback.hidden = true
     postProduct(current)
     return
   }
@@ -185,6 +241,12 @@ function onEscape(event: KeyboardEvent): void {
   if (event.key !== 'Escape' || !session || session.settled) return
 
   event.preventDefault()
+
+  if (session.loadFailed) {
+    reportLoadFailure()
+    return
+  }
+
   settle((options) => {
     options.onClose({ reason: closeReasons.userClosed })
   })
@@ -199,24 +261,46 @@ function open(options: OpenCheckoutOptions): void {
     return
   }
 
+  const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+
   try {
     const modal = createCheckoutModal(getCheckoutFrameUrl())
+    const onFrameError = () => {
+      if (!session || session.iframe.src === 'about:blank') return
+      showLoadError(session)
+    }
 
     session = {
       options,
       backdrop: modal.backdrop,
       iframe: modal.iframe,
+      fallback: modal.fallback,
       scrollLock: lockPageScroll(),
       onKeyDown: onEscape,
+      onFrameError,
+      loadTimer: 0,
+      loadFailed: false,
+      returnFocus,
       settled: false,
     }
+
+    const current = session
+    current.loadTimer = window.setTimeout(() => {
+      showLoadError(current)
+    }, checkoutLoadTimeoutMs)
+    modal.iframe.addEventListener('error', onFrameError)
+    modal.retryButton.addEventListener('click', () => {
+      retryCheckoutLoad(current)
+    })
+    modal.closeButton.addEventListener('click', () => {
+      reportLoadFailure()
+    })
 
     window.addEventListener('message', onCheckoutMessage)
     document.body.appendChild(modal.backdrop)
     // Keys typed inside the iframe do not reach the parent document.
     document.addEventListener('keydown', onEscape)
-    modal.backdrop.tabIndex = -1
-    modal.backdrop.focus()
+    modal.iframe.focus()
   } catch {
     closeCheckout()
     options.onError({

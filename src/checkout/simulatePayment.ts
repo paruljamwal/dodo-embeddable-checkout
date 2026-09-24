@@ -64,6 +64,13 @@ export async function simulatePayment(input: SimulatePaymentInput): Promise<Paym
     }
   }
 
+  if (digits === testCards.networkFailure) {
+    return {
+      result: { status: 'failed', cause: 'network' },
+      failedAttempts: input.failedAttempts,
+    }
+  }
+
   if (digits === testCards.failsOnceThenSucceeds) {
     if (input.failedAttempts < 1) {
       return {

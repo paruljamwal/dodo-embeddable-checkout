@@ -17,6 +17,7 @@ import { getEmailError } from '../email.ts'
 import { connectCheckoutFrame, postToSdk } from '../messaging.ts'
 import { findProduct, mockProduct, type Product } from '../product.ts'
 import { simulatePayment } from '../simulatePayment.ts'
+import type { CheckoutFailure } from '../../sdk/types.ts'
 import '../checkout.css'
 
 const checkoutStatus = {
@@ -49,11 +50,16 @@ function failureMessage(cause: FailureCause): string {
   return "Your payment couldn't be completed. Try again."
 }
 
-function paymentFailure(cause: FailureCause): { code: typeof errorCodes.paymentDeclined | typeof errorCodes.paymentFailed; message: string } {
-  return {
-    code: cause === 'declined' ? errorCodes.paymentDeclined : errorCodes.paymentFailed,
-    message: failureMessage(cause),
+function paymentFailure(cause: FailureCause): CheckoutFailure {
+  if (cause === 'declined') {
+    return { code: errorCodes.paymentDeclined, message: failureMessage(cause) }
   }
+
+  if (cause === 'network') {
+    return { code: errorCodes.communicationFailed, message: failureMessage(cause) }
+  }
+
+  return { code: errorCodes.paymentFailed, message: failureMessage(cause) }
 }
 
 function showsPaymentForm(state: CheckoutState): boolean {
@@ -90,6 +96,24 @@ export function CheckoutPage() {
       setProductLoad(product ? { status: 'ready', product } : { status: 'missing' })
     })
   }, [])
+
+  useEffect(() => {
+    if (productLoad.status !== 'ready' || window.parent === window) return
+    emailInputRef.current?.focus()
+  }, [productLoad.status])
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape') return
+      if (state.status === checkoutStatus.processing || state.status === checkoutStatus.success) return
+
+      event.preventDefault()
+      handleClose()
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [state.status])
 
   useEffect(() => {
     if (!failureCause) return
