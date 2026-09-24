@@ -10,6 +10,48 @@ Payment is simulated in the browser. The assignment does not require a backend, 
 
 This demo is a frontend prototype. Payments are simulated. No card is charged.
 
+## Screenshots
+
+Merchant page before checkout is opened.
+
+![Merchant page](docs/screenshots/merchant.png)
+
+Email step inside the checkout iframe.
+
+![Email step](docs/screenshots/email.png)
+
+Pay stays disabled until the card number, expiry, and CVC are valid.
+
+![Invalid card](docs/screenshots/card-invalid.png)
+
+`4242 4242 4242 4242` is ready to pay.
+
+![Valid test card](docs/screenshots/card-ready.png)
+
+Success closes checkout, shows a toast, and logs `onSuccess`.
+
+![Payment success](docs/screenshots/success.png)
+
+`4000 0000 0000 0002` is declined. Checkout stays open and the merchant gets `onError`.
+
+![Payment declined](docs/screenshots/declined.png)
+
+`4000 0000 0000 0341` fails the first attempt.
+
+![Retry first failure](docs/screenshots/retry-failed.png)
+
+The same card succeeds on retry. The log keeps the earlier events and adds one `onSuccess`.
+
+![Retry success](docs/screenshots/retry-success.png)
+
+`4000 0000 0000 0119` is a network failure. Retry uses the same payment flow.
+
+![Network failure](docs/screenshots/network-failure.png)
+
+Closing checkout logs `onClose` and shows a toast.
+
+![Checkout closed](docs/screenshots/closed.png)
+
 ## Features
 
 - Embeddable browser SDK (`DodoCheckout.open`)
