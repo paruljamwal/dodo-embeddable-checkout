@@ -236,6 +236,27 @@ body {
   outline-offset: 4px;
 }
 
+.payment-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.payment-form .checkout-primary {
+  margin-top: 0;
+}
+
+.payment-form .checkout-input {
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
 .checkout-trust {
   margin: 16px 0 0;
   color: #44403c;

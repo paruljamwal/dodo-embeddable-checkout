@@ -3,6 +3,7 @@ import { flushSync } from 'react-dom'
 import { CheckoutHeader } from '../components/CheckoutHeader.tsx'
 import { CheckoutLayout } from '../components/CheckoutLayout.tsx'
 import { EmailForm } from '../components/EmailForm.tsx'
+import { PaymentForm } from '../components/PaymentForm.tsx'
 import { ProductSummary } from '../components/ProductSummary.tsx'
 import { getEmailError } from '../email.ts'
 import { mockProduct } from '../product.ts'
@@ -19,6 +20,9 @@ export function CheckoutPage() {
   const [step, setStep] = useState<CheckoutStep>(checkoutSteps.details)
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [cardNumber, setCardNumber] = useState('')
+  const [expiry, setExpiry] = useState('')
+  const [cvc, setCvc] = useState('')
   const emailInputRef = useRef<HTMLInputElement>(null)
   const paymentHeadingRef = useRef<HTMLHeadingElement>(null)
 
@@ -48,6 +52,8 @@ export function CheckoutPage() {
     })
     paymentHeadingRef.current?.focus()
   }
+
+  function handlePay() {}
 
   function handleBack() {
     flushSync(() => {
@@ -82,8 +88,17 @@ export function CheckoutPage() {
             <h1 ref={paymentHeadingRef} className="checkout-step-heading" tabIndex={-1}>
               Payment
             </h1>
-            <p className="checkout-lede">You'll enter your card here.</p>
             <ProductSummary product={mockProduct} />
+            <PaymentForm
+              product={mockProduct}
+              cardNumber={cardNumber}
+              expiry={expiry}
+              cvc={cvc}
+              onCardNumberChange={setCardNumber}
+              onExpiryChange={setExpiry}
+              onCvcChange={setCvc}
+              onPay={handlePay}
+            />
             <button type="button" className="checkout-back" onClick={handleBack}>
               Back to email
             </button>
