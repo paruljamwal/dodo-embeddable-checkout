@@ -112,6 +112,9 @@ body {
 }
 
 .product-summary-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin: 0;
   color: #1c1917;
   font-size: 1.75rem;
@@ -119,6 +122,118 @@ body {
   letter-spacing: -0.03em;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+}
+
+.product-summary-currency {
+  color: #44403c;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.checkout-field {
+  margin-top: 24px;
+}
+
+.checkout-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.checkout-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.checkout-input::placeholder {
+  color: #78716c;
+}
+
+.checkout-input:focus-visible {
+  outline: 2px solid #1c1917;
+  outline-offset: 2px;
+}
+
+.checkout-input[aria-invalid='true'] {
+  border-color: #9f1239;
+}
+
+.checkout-error {
+  margin: 8px 0 0;
+  color: #9f1239;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.checkout-primary {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 6px;
+  background: #1c1917;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.checkout-primary:hover:not(:disabled) {
+  background: #292524;
+}
+
+.checkout-primary:active:not(:disabled) {
+  background: #0c0a09;
+}
+
+.checkout-primary:focus-visible {
+  outline: 2px solid #1c1917;
+  outline-offset: 2px;
+}
+
+.checkout-primary:disabled {
+  background: #e7e5e4;
+  color: #44403c;
+  cursor: not-allowed;
+}
+
+.checkout-back {
+  margin-top: 24px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1917;
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.checkout-back:hover {
+  background: #f7f6f4;
+}
+
+.checkout-back:active {
+  background: #efece8;
+}
+
+.checkout-back:focus-visible {
+  outline: 2px solid #1c1917;
+  outline-offset: 2px;
+}
+
+.checkout-step-heading:focus {
+  outline: 2px solid #1c1917;
+  outline-offset: 4px;
 }
 
 .checkout-trust {

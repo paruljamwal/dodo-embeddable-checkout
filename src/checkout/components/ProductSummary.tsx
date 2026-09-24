@@ -10,7 +10,10 @@ export function ProductSummary({ product }: ProductSummaryProps) {
       <h2>{product.name}</h2>
       <p className="product-summary-description">{product.description}</p>
       <hr />
-      <p className="product-summary-price">{formatProductPrice(product)}</p>
+      <p className="product-summary-price">
+        <span>{formatProductPrice(product)}</span>
+        <span className="product-summary-currency">{product.currency}</span>
+      </p>
     </article>
   )
 }
