@@ -6,9 +6,6 @@
   width: min(100% - 32px, 32rem);
   margin-right: auto;
   margin-left: auto;
-}
-
-.merchant-content {
   padding: 32px 0 64px;
 }
 

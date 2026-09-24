@@ -4,6 +4,12 @@ A small embeddable checkout prototype. A framework-independent TypeScript SDK op
 
 Payment is simulated in the browser. The assignment does not require a backend, so card charges never leave the checkout page.
 
+## Live Demo
+
+[Open the live demo](https://dodo-embeddable-checkout.netlify.app)
+
+This demo is a frontend prototype. Payments are simulated. No card is charged.
+
 ## Features
 
 - Embeddable browser SDK (`DodoCheckout.open`)
