@@ -5,9 +5,10 @@ import type { Product } from '../product.ts'
 type PaymentSuccessProps = {
   product: Product
   transactionId: string
+  onDone: () => void
 }
 
-export function PaymentSuccess({ product, transactionId }: PaymentSuccessProps) {
+export function PaymentSuccess({ product, transactionId, onDone }: PaymentSuccessProps) {
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useEffect(() => {
@@ -17,15 +18,15 @@ export function PaymentSuccess({ product, transactionId }: PaymentSuccessProps) 
   return (
     <>
       <h1 ref={headingRef} className="checkout-step-heading" tabIndex={-1}>
-        Payment complete
+        Payment successful
       </h1>
-      <p className="checkout-lede">Your payment went through.</p>
+      <p className="checkout-lede">Your payment has been completed.</p>
       <dl className="checkout-transaction">
         <dt>Transaction ID</dt>
         <dd>{transactionId}</dd>
       </dl>
       <ProductSummary product={product} />
-      <button type="button" className="checkout-primary checkout-done">
+      <button type="button" className="checkout-primary checkout-done" onClick={onDone}>
         Done
       </button>
     </>

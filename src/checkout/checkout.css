@@ -236,6 +236,11 @@ body {
   outline-offset: 4px;
 }
 
+.checkout-close-spacer {
+  width: 72px;
+  min-height: 44px;
+}
+
 .checkout-status {
   margin: 0;
   padding: 12px 14px;
@@ -245,6 +250,11 @@ body {
   background: #fff;
   color: #1c1917;
   font-size: 0.9375rem;
+}
+
+.checkout-status:focus {
+  outline: 2px solid #1c1917;
+  outline-offset: 2px;
 }
 
 .checkout-input:disabled {

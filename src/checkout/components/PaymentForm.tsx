@@ -21,8 +21,9 @@ type PaymentFormProps = {
   cardNumber: string
   expiry: string
   cvc: string
-  isPaying: boolean
+  isProcessing: boolean
   statusMessage: string | null
+  statusRef: RefObject<HTMLParagraphElement | null>
   onCardNumberChange: (value: string) => void
   onExpiryChange: (value: string) => void
   onCvcChange: (value: string) => void
@@ -94,8 +95,9 @@ export function PaymentForm({
   cardNumber,
   expiry,
   cvc,
-  isPaying,
+  isProcessing,
   statusMessage,
+  statusRef,
   onCardNumberChange,
   onExpiryChange,
   onCvcChange,
@@ -193,15 +195,15 @@ export function PaymentForm({
       return
     }
 
-    if (isPaying) return
+    if (isProcessing) return
 
     onPay()
   }
 
   return (
-    <form className="payment-form" noValidate onSubmit={handleSubmit} aria-busy={isPaying}>
+    <form className="payment-form" noValidate onSubmit={handleSubmit} aria-busy={isProcessing}>
       {statusMessage ? (
-        <p className="checkout-status" role="alert">
+        <p ref={statusRef} className="checkout-status" role="alert" tabIndex={-1}>
           {statusMessage}
         </p>
       ) : null}
@@ -213,7 +215,7 @@ export function PaymentForm({
         autoComplete="cc-number"
         placeholder="1234 5678 9012 3456"
         inputRef={cardNumberRef}
-        disabled={isPaying}
+        disabled={isProcessing}
         onChange={handleCardNumberChange}
         onBlur={() => markTouched('cardNumber')}
       />
@@ -226,7 +228,7 @@ export function PaymentForm({
           autoComplete="cc-exp"
           placeholder="MM/YY"
           inputRef={expiryRef}
-          disabled={isPaying}
+          disabled={isProcessing}
           onChange={handleExpiryChange}
           onBlur={() => markTouched('expiry')}
         />
@@ -238,13 +240,17 @@ export function PaymentForm({
           autoComplete="cc-csc"
           placeholder="123"
           inputRef={cvcRef}
-          disabled={isPaying}
+          disabled={isProcessing}
           onChange={handleCvcChange}
           onBlur={() => markTouched('cvc')}
         />
       </div>
-      <button className="checkout-primary" type="submit" disabled={!canPay || isPaying}>
-        {isPaying ? 'Processing…' : `Pay ${formatProductPrice(product)}`}
+      <button className="checkout-primary" type="submit" disabled={!canPay || isProcessing}>
+        {isProcessing
+          ? 'Processing payment…'
+          : statusMessage
+            ? 'Try again'
+            : `Pay ${formatProductPrice(product)}`}
       </button>
     </form>
   )
