@@ -1,4 +1,11 @@
-import { errorCodes, getCheckoutFrameUrl } from '../constants/checkout.ts'
+import {
+  checkoutMessageSource,
+  checkoutMessageTypes,
+  errorCodes,
+  getCheckoutFrameUrl,
+  getCheckoutOrigin,
+} from '../constants/checkout.ts'
+import { isCheckoutToSdkMessage, type OpenCheckoutMessage } from '../types/messages.ts'
 import { createCheckoutModal } from './modal.ts'
 import type { CheckoutFailure, OpenCheckoutOptions } from './types.ts'
 
@@ -18,6 +25,7 @@ type CheckoutSession = {
   iframe: HTMLIFrameElement
   scrollLock: PageScrollLock
   onKeyDown: (event: KeyboardEvent) => void
+  settled: boolean
 }
 
 let session: CheckoutSession | null = null
@@ -101,9 +109,39 @@ function closeCheckout(): void {
 
   session = null
   document.removeEventListener('keydown', current.onKeyDown)
+  window.removeEventListener('message', onCheckoutMessage)
   restorePageScroll(current.scrollLock)
   current.iframe.remove()
   current.backdrop.remove()
+}
+
+function postProduct(current: CheckoutSession): void {
+  const target = current.iframe.contentWindow
+  if (!target) return
+
+  const message: OpenCheckoutMessage = {
+    source: checkoutMessageSource,
+    type: checkoutMessageTypes.open,
+    payload: { productId: current.options.productId },
+  }
+
+  target.postMessage(message, getCheckoutOrigin())
+}
+
+function onCheckoutMessage(event: MessageEvent): void {
+  const current = session
+  if (!current || current.settled) return
+  if (event.origin !== getCheckoutOrigin()) return
+  if (!current.iframe.contentWindow || event.source !== current.iframe.contentWindow) return
+  if (!isCheckoutToSdkMessage(event.data)) return
+
+  if (event.data.type === checkoutMessageTypes.ready) {
+    postProduct(current)
+    return
+  }
+
+  current.settled = true
+  closeCheckout()
 }
 
 function onEscape(event: KeyboardEvent): void {
@@ -131,8 +169,10 @@ function open(options: OpenCheckoutOptions): void {
       iframe: modal.iframe,
       scrollLock: lockPageScroll(),
       onKeyDown: onEscape,
+      settled: false,
     }
 
+    window.addEventListener('message', onCheckoutMessage)
     document.body.appendChild(modal.backdrop)
     // Keys typed inside the iframe do not reach the parent document.
     document.addEventListener('keydown', onEscape)

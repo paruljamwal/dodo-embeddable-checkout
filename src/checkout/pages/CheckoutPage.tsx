@@ -6,9 +6,16 @@ import { EmailForm } from '../components/EmailForm.tsx'
 import { PaymentForm } from '../components/PaymentForm.tsx'
 import { PaymentSuccess } from '../components/PaymentSuccess.tsx'
 import { ProductSummary } from '../components/ProductSummary.tsx'
-import { closeReasons, type CloseReason } from '../../constants/checkout.ts'
+import {
+  checkoutMessageSource,
+  checkoutMessageTypes,
+  closeReasons,
+  errorCodes,
+  type CloseReason,
+} from '../../constants/checkout.ts'
 import { getEmailError } from '../email.ts'
-import { mockProduct } from '../product.ts'
+import { connectCheckoutFrame, postToSdk } from '../messaging.ts'
+import { findProduct, mockProduct, type Product } from '../product.ts'
 import { simulatePayment } from '../simulatePayment.ts'
 import '../checkout.css'
 
@@ -22,6 +29,11 @@ const checkoutStatus = {
 } as const
 
 type FailureCause = 'declined' | 'processor' | 'network'
+
+type ProductLoad =
+  | { status: 'loading' }
+  | { status: 'missing' }
+  | { status: 'ready'; product: Product }
 
 type CheckoutState =
   | { status: typeof checkoutStatus.email }
@@ -37,6 +49,13 @@ function failureMessage(cause: FailureCause): string {
   return "Your payment couldn't be completed. Try again."
 }
 
+function paymentFailure(cause: FailureCause): { code: typeof errorCodes.paymentDeclined | typeof errorCodes.paymentFailed; message: string } {
+  return {
+    code: cause === 'declined' ? errorCodes.paymentDeclined : errorCodes.paymentFailed,
+    message: failureMessage(cause),
+  }
+}
+
 function showsPaymentForm(state: CheckoutState): boolean {
   return (
     state.status === checkoutStatus.payment ||
@@ -46,6 +65,9 @@ function showsPaymentForm(state: CheckoutState): boolean {
 }
 
 export function CheckoutPage() {
+  const [productLoad, setProductLoad] = useState<ProductLoad>(() =>
+    window.parent === window ? { status: 'ready', product: mockProduct } : { status: 'loading' },
+  )
   const [state, setState] = useState<CheckoutState>({ status: checkoutStatus.email })
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
@@ -61,6 +83,13 @@ export function CheckoutPage() {
   const requestIdRef = useRef(0)
 
   const failureCause = state.status === checkoutStatus.failed ? state.cause : ''
+
+  useEffect(() => {
+    return connectCheckoutFrame((productId) => {
+      const product = findProduct(productId)
+      setProductLoad(product ? { status: 'ready', product } : { status: 'missing' })
+    })
+  }, [])
 
   useEffect(() => {
     if (!failureCause) return
@@ -100,7 +129,10 @@ export function CheckoutPage() {
   }
 
   async function handlePay() {
+    if (productLoad.status !== 'ready') return
     if (payingRef.current || state.status === checkoutStatus.processing) return
+
+    const product = productLoad.product
 
     payingRef.current = true
     const requestId = requestIdRef.current + 1
@@ -122,17 +154,29 @@ export function CheckoutPage() {
           status: checkoutStatus.success,
           transactionId: simulation.result.transactionId,
         })
+        postToSdk({
+          source: checkoutMessageSource,
+          type: checkoutMessageTypes.paymentSucceeded,
+          payload: {
+            transactionId: simulation.result.transactionId,
+            productId: product.id,
+          },
+        })
         return
       }
 
-      if (simulation.result.status === 'declined') {
-        setState({ status: checkoutStatus.failed, cause: 'declined' })
-        return
-      }
+      const cause: FailureCause =
+        simulation.result.status === 'declined'
+          ? 'declined'
+          : simulation.result.cause === 'network'
+            ? 'network'
+            : 'processor'
 
-      setState({
-        status: checkoutStatus.failed,
-        cause: simulation.result.cause === 'network' ? 'network' : 'processor',
+      setState({ status: checkoutStatus.failed, cause })
+      postToSdk({
+        source: checkoutMessageSource,
+        type: checkoutMessageTypes.paymentFailed,
+        payload: paymentFailure(cause),
       })
     } finally {
       if (requestId === requestIdRef.current) {
@@ -155,15 +199,41 @@ export function CheckoutPage() {
 
     requestIdRef.current += 1
     payingRef.current = false
+    postToSdk({
+      source: checkoutMessageSource,
+      type: checkoutMessageTypes.closed,
+      payload: { reason: closeReasons.userClosed },
+    })
     setState({ status: checkoutStatus.closed, reason: closeReasons.userClosed })
   }
 
   function handleDone() {
+    postToSdk({
+      source: checkoutMessageSource,
+      type: checkoutMessageTypes.closed,
+      payload: { reason: closeReasons.paymentCompleted },
+    })
     setState({ status: checkoutStatus.closed, reason: closeReasons.paymentCompleted })
   }
 
   const isProcessing = state.status === checkoutStatus.processing
   const showClose = state.status !== checkoutStatus.success && state.status !== checkoutStatus.closed
+
+  if (productLoad.status !== 'ready') {
+    return (
+      <CheckoutLayout>
+        <CheckoutHeader onClose={handleClose} closeDisabled={false} showClose />
+        <main className="checkout-main">
+          <h1>Complete your purchase</h1>
+          <p className="checkout-lede">
+            {productLoad.status === 'loading' ? 'Loading checkout…' : 'This product is unavailable.'}
+          </p>
+        </main>
+      </CheckoutLayout>
+    )
+  }
+
+  const product = productLoad.product
 
   return (
     <CheckoutLayout>
@@ -175,7 +245,7 @@ export function CheckoutPage() {
             <p className="checkout-lede">
               You'll pay on this page. The store never receives your card.
             </p>
-            <ProductSummary product={mockProduct} />
+            <ProductSummary product={product} />
             <EmailForm
               email={email}
               error={emailError}
@@ -193,9 +263,9 @@ export function CheckoutPage() {
             <h1 ref={paymentHeadingRef} className="checkout-step-heading" tabIndex={-1}>
               Payment
             </h1>
-            <ProductSummary product={mockProduct} />
+            <ProductSummary product={product} />
             <PaymentForm
-              product={mockProduct}
+              product={product}
               cardNumber={cardNumber}
               expiry={expiry}
               cvc={cvc}
@@ -221,7 +291,7 @@ export function CheckoutPage() {
 
         {state.status === checkoutStatus.success ? (
           <PaymentSuccess
-            product={mockProduct}
+            product={product}
             transactionId={state.transactionId}
             onDone={handleDone}
           />

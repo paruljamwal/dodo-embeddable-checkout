@@ -14,6 +14,10 @@ export const mockProduct: Product = {
   currency: 'USD',
 }
 
+export function findProduct(productId: string): Product | null {
+  return productId === mockProduct.id ? mockProduct : null
+}
+
 export function formatProductPrice(product: Product): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

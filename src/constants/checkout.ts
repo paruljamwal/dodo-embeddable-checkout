@@ -29,6 +29,10 @@ export function getCheckoutFrameUrl(): string {
   return new URL(checkoutFramePath, origin).href
 }
 
+export function getCheckoutOrigin(): string {
+  return new URL(getCheckoutFrameUrl()).origin
+}
+
 export const checkoutMessageSource = 'dodo-checkout'
 
 export const checkoutMessageTypes = {
