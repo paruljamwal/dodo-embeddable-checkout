@@ -68,52 +68,6 @@
   outline-offset: 2px;
 }
 
-.merchant-status {
-  margin: 16px 0 0;
-  padding: 12px 14px;
-  border: 1px solid #e4e2de;
-  border-radius: 8px;
-  background: #f7f6f4;
-  color: #44403c;
-  font-size: 0.9375rem;
-}
-
-.merchant-status-closed {
-  border-left: 3px solid #78716c;
-}
-
-.merchant-status-success {
-  border-left: 3px solid #3f6212;
-  background: #fff;
-  color: #1c1917;
-}
-
-.merchant-status-title {
-  margin: 0;
-  font-weight: 600;
-}
-
-.merchant-transaction {
-  display: grid;
-  gap: 4px;
-  margin: 8px 0 0;
-  color: #44403c;
-  font-size: 0.875rem;
-}
-
-.merchant-transaction strong {
-  color: #1c1917;
-  font-size: 1rem;
-  overflow-wrap: anywhere;
-}
-
-.merchant-status-error {
-  border-left: 3px solid #9f1239;
-  background: #fff;
-  color: #1c1917;
-  font-weight: 600;
-}
-
 .event-log {
   margin-top: 28px;
   padding: 16px;
