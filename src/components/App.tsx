@@ -1,5 +1,7 @@
+import { CheckoutPage } from '../checkout/pages/CheckoutPage.tsx'
+
 function App() {
-  return <main>Dodo embeddable checkout</main>
+  return <CheckoutPage />
 }
 
 export default App
