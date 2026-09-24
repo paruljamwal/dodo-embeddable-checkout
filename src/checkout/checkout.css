@@ -236,6 +236,51 @@ body {
   outline-offset: 4px;
 }
 
+.checkout-status {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #e4e2de;
+  border-left: 3px solid #9f1239;
+  border-radius: 6px;
+  background: #fff;
+  color: #1c1917;
+  font-size: 0.9375rem;
+}
+
+.checkout-input:disabled {
+  background: #f5f5f4;
+  color: #44403c;
+}
+
+.checkout-transaction {
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  border: 1px solid #e4e2de;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.checkout-transaction dt {
+  color: #44403c;
+  font-size: 0.875rem;
+}
+
+.checkout-transaction dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.checkout-done {
+  margin-top: 24px;
+}
+
+.checkout-back:disabled {
+  color: #78716c;
+  background: #f5f5f4;
+  cursor: not-allowed;
+}
+
 .payment-form {
   display: grid;
   gap: 16px;

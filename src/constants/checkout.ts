@@ -29,6 +29,10 @@ export const checkoutMessageTypes = {
   closed: 'checkout.closed',
 } as const
 
+export const simulateNetworkFailure = false
+
+export const paymentDelayMs = 1000
+
 export const testCards = {
   success: '4242424242424242',
   declined: '4000000000000002',

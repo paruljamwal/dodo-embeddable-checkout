@@ -21,6 +21,8 @@ type PaymentFormProps = {
   cardNumber: string
   expiry: string
   cvc: string
+  isPaying: boolean
+  statusMessage: string | null
   onCardNumberChange: (value: string) => void
   onExpiryChange: (value: string) => void
   onCvcChange: (value: string) => void
@@ -35,6 +37,7 @@ type PaymentFieldProps = {
   autoComplete: string
   placeholder: string
   inputRef: RefObject<HTMLInputElement | null>
+  disabled: boolean
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
   onBlur: () => void
 }
@@ -47,6 +50,7 @@ function PaymentField({
   autoComplete,
   placeholder,
   inputRef,
+  disabled,
   onChange,
   onBlur,
 }: PaymentFieldProps) {
@@ -69,6 +73,7 @@ function PaymentField({
         spellCheck={false}
         placeholder={placeholder}
         required
+        disabled={disabled}
         value={value}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
@@ -89,6 +94,8 @@ export function PaymentForm({
   cardNumber,
   expiry,
   cvc,
+  isPaying,
+  statusMessage,
   onCardNumberChange,
   onExpiryChange,
   onCvcChange,
@@ -186,11 +193,18 @@ export function PaymentForm({
       return
     }
 
+    if (isPaying) return
+
     onPay()
   }
 
   return (
-    <form className="payment-form" noValidate onSubmit={handleSubmit}>
+    <form className="payment-form" noValidate onSubmit={handleSubmit} aria-busy={isPaying}>
+      {statusMessage ? (
+        <p className="checkout-status" role="alert">
+          {statusMessage}
+        </p>
+      ) : null}
       <PaymentField
         id={cardNumberId}
         label="Card number"
@@ -199,6 +213,7 @@ export function PaymentForm({
         autoComplete="cc-number"
         placeholder="1234 5678 9012 3456"
         inputRef={cardNumberRef}
+        disabled={isPaying}
         onChange={handleCardNumberChange}
         onBlur={() => markTouched('cardNumber')}
       />
@@ -211,6 +226,7 @@ export function PaymentForm({
           autoComplete="cc-exp"
           placeholder="MM/YY"
           inputRef={expiryRef}
+          disabled={isPaying}
           onChange={handleExpiryChange}
           onBlur={() => markTouched('expiry')}
         />
@@ -222,12 +238,13 @@ export function PaymentForm({
           autoComplete="cc-csc"
           placeholder="123"
           inputRef={cvcRef}
+          disabled={isPaying}
           onChange={handleCvcChange}
           onBlur={() => markTouched('cvc')}
         />
       </div>
-      <button className="checkout-primary" type="submit" disabled={!canPay}>
-        Pay {formatProductPrice(product)}
+      <button className="checkout-primary" type="submit" disabled={!canPay || isPaying}>
+        {isPaying ? 'Processing…' : `Pay ${formatProductPrice(product)}`}
       </button>
     </form>
   )
