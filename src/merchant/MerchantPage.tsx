@@ -61,38 +61,45 @@ export function MerchantPage() {
 
   return (
     <main className="merchant">
-      <p className="merchant-brand">Field Goods</p>
-      <article className="merchant-product">
-        <h1>{mockProduct.name}</h1>
-        <p className="merchant-description">{mockProduct.description}</p>
-        <p className="merchant-price">
-          {formatProductPrice(mockProduct)}
-          <span className="merchant-currency">{mockProduct.currency}</span>
-        </p>
-        <button type="button" className="merchant-buy" onClick={buy}>
-          Buy Now
-        </button>
-        {notice?.status === 'success' ? (
-          <div className="merchant-status" role="status">
-            <p className="merchant-status-title">Payment successful</p>
-            <p className="merchant-transaction">
-              <span>Transaction ID</span>
-              <strong>{notice.result.transactionId}</strong>
+      <div className="merchant-content">
+        <article className="merchant-product">
+          <h1>{mockProduct.name}</h1>
+          <p className="merchant-description">{mockProduct.description}</p>
+          <p className="merchant-price">
+            {formatProductPrice(mockProduct)}
+            <span className="merchant-currency">{mockProduct.currency}</span>
+          </p>
+          <button type="button" className="merchant-buy" onClick={buy}>
+            Buy Now
+          </button>
+          {notice?.status === 'success' ? (
+            <div className="merchant-status merchant-status-success" role="status">
+              <p className="merchant-status-title">Payment successful</p>
+              <p className="merchant-transaction">
+                <span>Transaction ID</span>
+                <strong>{notice.result.transactionId}</strong>
+              </p>
+            </div>
+          ) : null}
+          {notice?.status === 'closed' ? (
+            <p className="merchant-status merchant-status-closed" role="status">
+              Checkout closed.
             </p>
-          </div>
-        ) : null}
-        {notice?.status === 'closed' ? (
-          <p className="merchant-status" role="status">
-            Checkout closed.
-          </p>
-        ) : null}
-        {notice?.status === 'error' ? (
-          <p className="merchant-status merchant-status-error" role="alert">
-            {notice.error.message}
-          </p>
-        ) : null}
-      </article>
-      <EventLog events={events} onClear={() => setEvents([])} />
+          ) : null}
+          {notice?.status === 'error' ? (
+            <p className="merchant-status merchant-status-error" role="alert">
+              {notice.error.message}
+            </p>
+          ) : null}
+        </article>
+        <EventLog
+          events={events}
+          onClear={() => {
+            setNotice(null)
+            setEvents([])
+          }}
+        />
+      </div>
     </main>
   )
 }

@@ -34,21 +34,25 @@ body {
 }
 
 .checkout-brand {
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  display: block;
+  height: 28px;
+  width: auto;
+  max-width: min(11.25rem, calc(100% - 60px));
+  object-fit: contain;
+  object-position: left center;
 }
 
 .checkout-close {
-  min-height: 44px;
-  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 1px solid #d6d3d1;
   border-radius: 6px;
   background: #fff;
   color: #1c1917;
-  font: inherit;
-  font-size: 0.9375rem;
   cursor: pointer;
 }
 
@@ -237,7 +241,7 @@ body {
 }
 
 .checkout-close-spacer {
-  width: 72px;
+  width: 44px;
   min-height: 44px;
 }
 

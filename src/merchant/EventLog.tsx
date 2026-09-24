@@ -61,7 +61,7 @@ export function EventLog({ events, onClear }: EventLogProps) {
       <div className="event-log-header">
         <h2 id="sdk-event-log-heading">SDK Event Log</h2>
         {events.length > 0 ? (
-          <button type="button" className="event-log-clear" onClick={onClear}>
+          <button type="button" className="event-log-clear" aria-label="Clear event log" onClick={onClear}>
             Clear
           </button>
         ) : null}
