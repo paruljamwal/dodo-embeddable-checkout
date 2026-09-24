@@ -151,7 +151,16 @@ function onCheckoutMessage(event: MessageEvent): void {
     return
   }
 
-  if (event.data.type === checkoutMessageTypes.paymentFailed) return
+  if (event.data.type === checkoutMessageTypes.paymentFailed) {
+    if (event.data.payload.code !== errorCodes.paymentDeclined) return
+
+    const failure = {
+      code: event.data.payload.code,
+      message: event.data.payload.message,
+    }
+    current.options.onError(failure)
+    return
+  }
 
   if (event.data.type === checkoutMessageTypes.paymentSucceeded) {
     const result = {
