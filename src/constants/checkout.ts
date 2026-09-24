@@ -18,15 +18,8 @@ export type ErrorCode = (typeof errorCodes)[keyof typeof errorCodes]
 
 export const checkoutFramePath = '/checkout'
 
-// Optional origin for local development. Defaults to the current page origin.
 export function getCheckoutFrameUrl(): string {
-  const configuredOrigin = import.meta.env.VITE_DODO_CHECKOUT_ORIGIN
-  const origin =
-    typeof configuredOrigin === 'string' && configuredOrigin.trim().length > 0
-      ? configuredOrigin.trim()
-      : window.location.origin
-
-  return new URL(checkoutFramePath, origin).href
+  return new URL(checkoutFramePath, window.location.origin).href
 }
 
 export function getCheckoutOrigin(): string {

@@ -42,9 +42,9 @@ npm run build
 npm run preview
 ```
 
-`npm run build` type-checks with `tsc -b`, then builds into `dist`.
+`npm run build` type-checks with `tsc -b`, then builds into `dist`. Netlify runs that command and publishes `dist`.
 
-To point the iframe at a checkout hosted on another origin, set `VITE_DODO_CHECKOUT_ORIGIN` before starting Vite. When it is unset, the iframe uses the current page origin.
+The checkout iframe is always `{current origin}/checkout`. On your machine that origin is localhost. On Netlify it is the deployment origin. There is no separate checkout-origin setting.
 
 ## Project structure
 
@@ -111,7 +111,7 @@ Any other 16-digit number that passes the Luhn check is treated as a processor f
 
 **A decline notifies the merchant and leaves checkout open.** Closing on every failure would make the fail-once card end the session before retry, and the merchant would see an error and then a success. A decline is reported with `onError` because the merchant should know the attempt was refused. Processor and network failures stay in the iframe until the customer either pays or closes checkout.
 
-**One app, two routes, instead of three packages.** The SDK, checkout, and demo store ship together so `npm run dev` is the whole prototype. The card form still runs in an iframe, and the parent only receives the product id on the way in and a transaction id, close reason, or error on the way out. `VITE_DODO_CHECKOUT_ORIGIN` is the seam for hosting checkout on its own origin later.
+**One app, two routes, instead of three packages.** The SDK, checkout, and demo store ship together so `npm run dev` is the whole prototype. The card form still runs in an iframe on the same origin, and the parent only receives the product id on the way in and a transaction id, close reason, or error on the way out.
 
 ## What I'd explore next
 
