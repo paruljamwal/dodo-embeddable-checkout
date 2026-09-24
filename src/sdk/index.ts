@@ -1,6 +1,7 @@
 import {
   checkoutMessageSource,
   checkoutMessageTypes,
+  closeReasons,
   errorCodes,
   getCheckoutFrameUrl,
   getCheckoutOrigin,
@@ -128,6 +129,16 @@ function postProduct(current: CheckoutSession): void {
   target.postMessage(message, getCheckoutOrigin())
 }
 
+function settle(notify: (options: OpenCheckoutOptions) => void): void {
+  const current = session
+  if (!current || current.settled) return
+
+  current.settled = true
+  const options = current.options
+  closeCheckout()
+  notify(options)
+}
+
 function onCheckoutMessage(event: MessageEvent): void {
   const current = session
   if (!current || current.settled) return
@@ -140,15 +151,34 @@ function onCheckoutMessage(event: MessageEvent): void {
     return
   }
 
-  current.settled = true
-  closeCheckout()
+  if (event.data.type === checkoutMessageTypes.paymentFailed) return
+
+  if (event.data.type === checkoutMessageTypes.paymentSucceeded) {
+    const result = {
+      transactionId: event.data.payload.transactionId,
+      productId: event.data.payload.productId,
+    }
+    settle((options) => {
+      options.onSuccess(result)
+    })
+    return
+  }
+
+  if (event.data.payload.reason === closeReasons.paymentCompleted) return
+
+  const reason = event.data.payload.reason
+  settle((options) => {
+    options.onClose({ reason })
+  })
 }
 
 function onEscape(event: KeyboardEvent): void {
-  if (event.key !== 'Escape' || !session) return
+  if (event.key !== 'Escape' || !session || session.settled) return
 
   event.preventDefault()
-  closeCheckout()
+  settle((options) => {
+    options.onClose({ reason: closeReasons.userClosed })
+  })
 }
 
 function open(options: OpenCheckoutOptions): void {
